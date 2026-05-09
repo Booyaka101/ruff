@@ -16,7 +16,7 @@ python-version = "3.12"
 ## Propagating target type annotation
 
 ```py
-from typing import Literal
+from typing import Generator, Iterable, Literal
 
 def list1[T](x: T) -> list[T]:
     return [x]
@@ -36,6 +36,18 @@ def _(l: list[int] | None = None):
 
     l2: list[int] = l or list()
     reveal_type(l2)  # revealed: list[int]
+
+class TextContent: ...
+class TagContent: ...
+
+def expects_content(content: Generator[list[TextContent | TagContent], None, None]) -> None: ...
+def expects_iterable_content(content: Iterable[list[TextContent | TagContent]]) -> None: ...
+def generator_content() -> None:
+    expects_content([TextContent()] for _ in range(1))
+    expects_iterable_content([TextContent()] for _ in range(1))
+
+def invalid_generator_content() -> None:
+    expects_content([object()] for _ in range(1))  # error: [invalid-argument-type]
 
 def f[T](x: T, cond: bool) -> T | list[T]:
     return x if cond else [x]
